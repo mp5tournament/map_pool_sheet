@@ -183,7 +183,7 @@ textarea::placeholder,input::placeholder{
                 每张图所对应一行中的格式，首个字符会被当做不同单元格之间的分隔符，之后的同样字符将会被转化为制表符，以达到能够直接向表格复制的效果。<br>
                 <i>{字段名}</i>会被替换成相应数据，比如<i>{star}</i>会被替换成图的星数。如果你希望真正显示<i>{</i>和<i>}</i>这两个字符，请用<i>{{</i>和<i>}}</i>代替。<br>
                 支持旧版api中get_beatmaps的全部字段名（具体请查询<a href="https://github.com/ppy/osu-api/wiki#Beatmap" target="_blank">官方文档</a>，使用官方文档字段时将会保留api提供的原数据。此外<i>star</i>、<i>ar</i>、<i>od</i>、<i>cs</i>、<i>hp</i>、<i>ttl</i>、<i>htl</i>、<i>bid</i>、<i>sid</i>均会分别指向相应字段，且<i>star</i>默认保留并显示两位小数，四维默认保留并显示一位小数，<i>ttl</i>和<i>htl</i>分别为m:ss的格式的<i>total_length</i>和<i>hit_length</i>。<br>
-                <i>{link}</i>将使相应单元格变为指向官网相应图的链接。例如一个格式为<i>{link}【{bid}】</i>的单元格，对于bid为1000684的图，将会显示<i>【1000684】</i>，并是一个指向<i>https://osu.ppy.sh/b/1000684</i>的链接。该链接在Excel、qq表格、Google表格中均生效，但单元格格式需为<i>常规</i>。<br>
+                <i>{link}</i>将使相应单元格变为指向官网相应图的链接。例如一个格式为<i>{link}【{bid}】</i>的单元格，对于bid为1000684的图，将会显示<i>【1000684】</i>，并是一个指向<i>https://osu.ppy.sh/b/1000684</i>的链接。该链接在Excel、qq表格、Google表格中均生效，但单元格格式需为<i>常规</i>。这种单元格中的半角英文双引号<i>"</i>将被半角英文双引号<i>＂</i>代替。<br>
                 对于小数字段，<i>{字段名.n}</i>将强制保留并显示n位小数，而<i>{字段名~n}</i>将强制保留n位小数，但不显示末尾的0。例如对于一张ar为9.6667的图，<i>{ar.2}</i>和<i>{ar~2}</i>都会显示为<i>9.67</i>；对于一张ar为9.1的图，<i>{ar.2}</i>会显示为<i>9.10</i>，而<i>{ar~2}</i>会显示为<i>9.1</i>。
             </td></tr><tr>
                 <td></td>
@@ -572,6 +572,7 @@ function getConvert(fmNeed){
                 m--
                 continue
             }
+            if(name[0]=='link')continue
             if(!(name[0] in fieldList)) throw `图池格式设置中“${item}”字段错误，没有这个字段。`
             if(name.length>2){
                 throw `图池格式设置中“${item}”字段格式错误。`
@@ -635,36 +636,45 @@ function getConvert(fmNeed){
     function convert(map){
         if(map.Unavailable)return ''
         let result=[]
-        for(let d of row)result.push(d.replaceAll(/{[^\{\}]+}/g,function(item){
-            let type=item.match(/[.~]/g)
-            type=type?type[0]:null
-            let name=item.slice(1,-1).split(/[.~]/g)
-            let digit=type?parseInt(name[1]):0
-            name=name[0].trim().toLowerCase()
-            if(name=='_0')return'{'
-            if(name=='_1')return'}'
-            let alt=altName[name]
-            if(alt){
-                name=alt[0]
-                if(!type){
-                    type=alt[1]
-                    digit=alt[2]
+        for(let d of row){
+            let link=false
+            d=d.replaceAll(/{[^\{\}]+}/g,function(item){
+                let type=item.match(/[.~]/g)
+                type=type?type[0]:null
+                let name=item.slice(1,-1).split(/[.~]/g)
+                let digit=type?parseInt(name[1]):0
+                name=name[0].trim().toLowerCase()
+                if(name=='_0')return'{'
+                if(name=='_1')return'}'
+                if(name=='link'){
+                    link=true
+                    return ''
                 }
-            }
-            let x=''
-            if(map.mod=='FM'){
-                if(name in convertList)x=convertFM(map,name,type,digit)
+
+                let alt=altName[name]
+                if(alt){
+                    name=alt[0]
+                    if(!type){
+                        type=alt[1]
+                        digit=alt[2]
+                    }
+                }
+                let x=''
+                if(map.mod=='FM'){
+                    if(name in convertList)x=convertFM(map,name,type,digit)
+                    else {
+                        x=map['NM'][name]
+                        if(type)x=formatNumber(x,type,digit)
+                    }
+                }
                 else {
-                    x=map['NM'][name]
+                    x=map[map.mod][name]
                     if(type)x=formatNumber(x,type,digit)
                 }
-            }
-            else {
-                x=map[map.mod][name]
-                if(type)x=formatNumber(x,type,digit)
-            }
-            return x
-        }))
+                return x
+            })
+            result.push(link?`=HYPERLINK("https://osu.ppy.sh/b/${map.bid}","${d.replaceAll('"','＂')}")`:d)
+        }
         return result.join('\t')
     }
     
