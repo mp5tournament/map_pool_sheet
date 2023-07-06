@@ -1,0 +1,870 @@
+<html>
+<head>
+    <link rel="icon" sizes="32x32" href="https://osu.ppy.sh/images/favicon/favicon-32x32.png">
+    <link rel="icon" sizes="16x16" href="https://osu.ppy.sh/images/favicon/favicon-16x16.png">
+    <meta charset="utf-8">
+    <title>图池表生成器</title>  
+<style>
+body{
+    background-color:#F3F5F7;
+    margin:0;
+    font-size:18px;
+    line-height: 30px;
+    overflow-x: hidden;
+}
+.hidden{
+    display: none;
+}
+#body{
+    width:830px;
+    padding:0 10px;
+    margin: auto;
+    background-color:white;
+    min-height: 100vh;
+}
+h1{
+    margin-top: 20px;
+    margin-bottom: 0px;
+    float: left;
+}
+#introduction{
+    margin-top: 60px;
+    line-height: 10px;
+    font-size:10px;
+    color:#808080;
+    padding: 0;
+    float: right;
+}
+#introduction a{
+    display:inline !important;
+    color:#808080 !important;
+}
+#introduction a:hover{
+    background-color:white !important;
+    color: #A0A0A0 !important;
+}
+td{
+    font-size:18px;
+    line-height: 30px;
+    vertical-align:top;
+}
+.title{
+    font-size:22px;
+    font-weight:bold;
+    width:100px;
+}
+.comment{
+    font-size:14px;
+    color: #55A;
+    line-height: 24px;
+}
+.ltitle{
+    width: 102px;
+}
+input{
+    width:160px;
+    font-size:18px;
+    height:30px;
+}
+textarea{
+    resize:none;
+    width:150px;
+    font-size:18px;
+    height:222px;
+    font-family: inherit;
+}
+button{
+    font-size:18px;
+    height:30px;
+    border-radius: 5px;
+}
+#generate, #copy{
+    width:224px;
+}
+#save_config, #delete_config{
+    width:120px;
+    margin-left:15px;
+}
+#delete_config{
+    background-color:#FBC;
+}
+#delete_config:hover{
+    background-color:#FCD;
+}
+#copy{
+    background-color:#A1FFA1;
+}
+#copy:hover{
+    background-color:#C4FFC4;
+}
+#generate, #save_config{
+    background-color:#FD8;
+}
+#generate:hover, #save_config:hover{
+    background-color:#FEA;
+}
+select{
+    width:160px;
+    font-size:18px;
+    height:30px;
+}
+#content{
+    font-size: 14px;
+    line-height: 18px;
+    min-height: 24px;
+    max-width: 712px;
+    box-shadow: inset 1px 1px 3px grey;
+    padding:4px;
+    background-color: white;
+    white-space: break-spaces;
+}
+#content p{
+    margin: 0;
+}
+i{
+    padding-right:3.5px;
+    padding-left:1px;
+    margin:0 1px;
+    background-color: #E8E8E8;
+}
+a{
+    color: #66F;
+}
+a:hover{
+    color: #99F;
+}
+textarea::placeholder,input::placeholder{
+    color:#AAA;
+}
+</style>
+</head>
+<body>
+<div style="width: 100vw;">
+<div id="body">
+<div style="height:75px">
+    <h1>图池表生成器</h1>
+    <div id="introduction">项目地址：<a href="https://github.com/mp5tournament/map_pool_sheet" target="_blank">https://github.com/mp5tournament/map_pool_sheet</a></div>
+</div>
+<hr style="margin-top:0">
+<table style="width:100%">
+    <tr>
+        <td class="title">apikey</td>
+        <td class="comment" colspan="2">请<a href="https://osu.ppy.sh/home/account/edit#legacy-api" target="_blank">点击此处</a>并下滑至页面底部“Legacy API”处获取旧版apikey，它应当是一个仅包含小写字母和数字的字符串。</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td style="width:570px"><input id="apikey" style="width:100%;" placeholder="abcdefghijklmnopqrstuvwxyz01234567890123"></td>
+        <td><input id="remember" type="checkbox" style="margin-left:20px;margin-bottom:5px;height:20px;width:20px;vertical-align:bottom;">记住apikey</td>
+    </tr>
+</table>
+<hr>
+<table style="width:100%">
+    <tr>
+        <td class="title">格式设置</td>
+        <td><table><tr>
+            <td class="ltitle">预设：</td>
+            <td><select id="config_name"></select><input id="show_config" type="checkbox" style="margin-left:20px;margin-bottom:5px;height:20px;width:20px;vertical-align:bottom;">自定义</td>
+        </tr></table></td>
+    </tr>
+    <tr id="config" class="hidden">
+        <td></td>
+        <td>
+            <hr><table><tr>
+                <td class="ltitle">设置名：</td>
+                <td><input></td>
+                <td><button id="save_config">保存设置</button></td>
+                <td><button id="delete_config">删除设置</button></td>
+                <td id="flash_config" style="padding-left:12px;opacity:0">🆗</td>
+            </tr></table>
+            <hr><table style="width: 100%;"><tr>
+                <td class="ltitle">图池格式：</td>
+                <td><input placeholder="${link}{bid}${artist_unicode} - {title_unicode} [{version}] ({creator})${star}${cs} / {ar} / {od}${bpm}${htl} ({max_combo}x)" style="width: 100%;"></td>
+            </tr><tr><td class="comment" colspan="2">
+                每张图所对应一行中的格式，首个字符会被当做不同单元格之间的分隔符，之后的同样字符将会被转化为制表符，以达到能够直接向表格复制的效果。<br>
+                <i>{字段名}</i>会被替换成相应数据，比如<i>{star}</i>会被替换成图的星数。如果你希望真正显示<i>{</i>和<i>}</i>这两个字符，请用<i>{{</i>和<i>}}</i>代替。<br>
+                支持旧版api中get_beatmaps的全部字段名（具体请查询<a href="https://github.com/ppy/osu-api/wiki#Beatmap" target="_blank">官方文档</a>，使用官方文档字段时将会保留api提供的原数据。此外<i>star</i>、<i>ar</i>、<i>od</i>、<i>cs</i>、<i>hp</i>、<i>ttl</i>、<i>htl</i>、<i>bid</i>、<i>sid</i>均会分别指向相应字段，且<i>star</i>默认保留并显示两位小数，四维默认保留并显示一位小数，<i>ttl</i>和<i>htl</i>分别为m:ss的格式的<i>total_length</i>和<i>hit_length</i>。<br>
+                <i>{link}</i>将使相应单元格变为指向官网相应图的链接。例如一个格式为<i>{link}【{bid}】</i>的单元格，对于bid为1000684的图，将会显示<i>【1000684】</i>，并是一个指向<i>https://osu.ppy.sh/b/1000684</i>的链接。该链接在Excel、qq表格、Google表格中均生效，但单元格格式需为<i>常规</i>。<br>
+                对于小数字段，<i>{字段名.n}</i>将强制保留并显示n位小数，而<i>{字段名~n}</i>将强制保留n位小数，但不显示末尾的0。例如对于一张ar为9.6667的图，<i>{ar.2}</i>和<i>{ar~2}</i>都会显示为<i>9.67</i>；对于一张ar为9.1的图，<i>{ar.2}</i>会显示为<i>9.10</i>，而<i>{ar~2}</i>会显示为<i>9.1</i>。
+            </td></tr><tr>
+                <td></td>
+            </tr></table>
+            <hr><table><tr>
+                <td class="ltitle">FM格式：</td>
+                <td><input placeholder="{NM} / {HR}">
+                    <input type="checkbox" style="margin-left:20px;margin-bottom:5px;height:20px;width:20px;vertical-align:bottom;">星数
+                    <input type="checkbox" style="margin-left:20px;margin-bottom:5px;height:20px;width:20px;vertical-align:bottom;">AR
+                    <input type="checkbox" style="margin-left:20px;margin-bottom:5px;height:20px;width:20px;vertical-align:bottom;">OD
+                    <input type="checkbox" style="margin-left:20px;margin-bottom:5px;height:20px;width:20px;vertical-align:bottom;">CS
+                    <input type="checkbox" style="margin-left:20px;margin-bottom:5px;height:20px;width:20px;vertical-align:bottom;">HP</td>
+                <td></td>
+            </tr><tr><td class="comment" colspan="2">在FM时，图的星数和四维可能跟随MOD变化，如果你希望在图池表中显示不同MOD的星数或四维，则可以启用相应选项。<br>
+            例如FM格式为<i>{NM} / {HR}</i>时，如果选中了<i>星数</i>选项，对于一张原本为5.00星，HR后为5.50星的图，如果它的MOD为FM，其图池表中的<i>{star}</i>将会显示为<i>5.00 / 5.50</i>；但如果它的MOD为NM，则<i>{star}</i>依然会显示成<i>5.00</i>，不会受到本项设置的影响。</td></tr><tr>
+                <td></td>
+            </tr></table>
+            <hr><table style="width: 100%;"><tr>
+                <td class="ltitle">MOD识别：</td>
+                <td><textarea style="width: 100%;height: 78px;" placeholder="NM4 HD2 HR2 DT2
+NM5 HD2 HR2 DT3 FM2 TB
+NM6 HD3 HR3 DT4 FM2 TB"></textarea></td>
+            </tr><tr><td class="comment" colspan="2">本项可以根据图的总数自动识别每张图的MOD，每行对应一个图的总数。仅支持下方MOD列表里有的项目。<br>
+            例如当第一行为<i>NM4 HD2 HR2 DT2</i>，第二行为<i>NM5 HD2 HR2 DT3 FM2 TB</i>时，如果一共填入了10张图，则图数量和第一行一致，前4张图将被识别为NM，接下来2张是HD，以此类推；如果一共填入了15张图，则图数量和第二行一致，会按照第二行识别；如果一共填入了14张图，图数量和任何一行均不一致，则所有图均被识别为NM。</td></tr><tr>
+                <td></td>
+            </tr></table>
+        </td>
+    </tr>
+</table>
+<hr>
+<table style="width:100%">
+    <tr>
+        <td class="title">图池信息</td>
+        <td class="comment" colspan="3">请在此处填写图池信息，每行填写一张图的BID，并在右侧选择相应的MOD。图的星数、长度、四维等均会根据MOD转化，如果不希望其转化，选择NM等MOD即可。若为自动识别，则将根据上一项的设置来识别，无法识别时会全都当做NM/HD/TB等不需要修改图池数据的MOD。</td>
+    </tr>
+    <tr style="height: 36px;">
+        <td rowspan="3"></td>
+        <td rowspan="3" style="width: 200px;"><textarea id="pool" placeholder="1000684
+327526">1000684
+327526</textarea></td>
+        <td style="width:234px">MOD：<select id="mod"><option value="">⭐自动识别</option><option value="NM">⚪NM/HD/TB…</option><option value="HR">🔴HR</option><option value="DT">🟣DT</option><option value="FM">🔵FM</option><option value="EZ">🟢EZ</option><option value="FL">⚫FL</option><option value="HT">🟤HT</option></select></td>
+    </tr>
+    <tr style="height: 36px;">
+        <td><button id="generate">生成图池信息</button></td>
+        <td id="flash_generate" style="opacity:0">🆗</td>
+    </tr>
+    <tr>
+        <td><button id="copy">复制图池信息</button></td>
+        <td id="flash_copy" style="opacity:0">🆗</td>
+    </tr>
+</table>
+<hr>
+<table style="width:100%">
+    <tr>
+        <td class="title">生成内容</td>
+        <td><div id="content" disabled></div></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td></td>
+    </tr>
+</table>
+</div></div>
+<script type="text/javascript">
+const _mod=`
+NM5 HD2 HR2 DT3 FM2 TB3
+NM6 HD3 HR2 DT3 FM2 TB3
+NM6 HD3 HR2 DT4 FM3 TB3
+`.trim()
+
+const isInteger=/^-?[0-9]+$/
+const isIntegerP=/^[0-9]+$/
+const modList={
+    NM:0,
+    HD:0,
+    HR:16,
+    DT:64,
+    FM:0,
+    TB:0,
+    EZ:2,
+    FL:1024,
+    HT:256
+}
+const fieldList={
+    beatmapset_id: 1,
+    beatmap_id: 1,
+    approved: 1,
+    total_length: 1,
+    hit_length: 1,
+    version: 1,
+    file_md5: 1,
+    diff_size: 0,
+    diff_overall: 0,
+    diff_approach: 0,
+    diff_drain: 0,
+    mode: 1,
+    count_normal: 1,
+    count_slider: 1,
+    count_spinner: 1,
+    submit_date: 1,
+    approved_date: 1,
+    last_update: 1,
+    artist: 1,
+    artist_unicode: 1,
+    title: 1,
+    title_unicode: 1,
+    creator: 1,
+    creator_id: 1,
+    bpm: 0,
+    source: 1,
+    tags: 1,
+    genre_id: 1,
+    language_id: 1,
+    favourite_count: 1,
+    rating: 0,
+    storyboard: 1,
+    video: 1,
+    download_unavailable: 1,
+    audio_unavailable: 1,
+    playcount: 1,
+    passcount: 1,
+    packs: 1,
+    max_combo: 1,
+    diff_aim: 0,
+    diff_speed: 0,
+    difficultyrating: 0,
+
+    star: 0,
+    ar: 0,
+    od: 0,
+    cs: 0,
+    hp: 0,
+    ttl: 1,
+    htl: 1,
+    bid: 1,
+    sid: 1,
+}
+const altName={
+    star: ['difficultyrating','.',2],
+    ar: ['diff_approach','.',1],
+    od: ['diff_overall','.',1],
+    cs: ['diff_size','.',1],
+    hp: ['diff_drain','.',1],
+    ttl: ['total_length',':',0],
+    htl: ['hit_length',':',0],
+    bid: ['beatmap_id',null,0],
+    sid: ['beatmapset_id',null,0],
+}
+
+function formatNumber(x,t,d){
+    if(t==':'){
+        x=parseInt(x)
+        let y=x%60
+        let z=(x-y)/60
+        let y0=y<10?'0':''
+        return `${z}:${y0}${y}`
+    }
+    x=Number(x)
+    let n=x<0?1:0
+    if(n)x=-x
+    for(let i=0;i<d;i++)x*=10
+    x=String(Math.round(x))
+    if(x=='0')n=false
+    while(x.length<=d){
+        x='0'+x
+    }
+    let x1=d?x.slice(0,-d):x
+    let x2=d?x.slice(-d):''
+    if(t=='~'){
+        let i=x2.length-1
+        for(;i>=0;i--)if(x2[i]!='0')break
+        x2=x2.slice(0,i+1)
+    }
+    return (n?'-':'')+x1+(x2?('.'+x2):'')
+}
+
+const apikey=document.getElementById('apikey')
+const remember=document.getElementById('remember')
+const pool=document.getElementById('pool')
+const configName=document.getElementById('config_name')
+const config=document.getElementById('config')
+const configInput=config.getElementsByTagName('input')
+const content=document.getElementById('content')
+
+let configDataDefault={
+    'MP5选图表':{
+        format:'${artist_unicode} - {title_unicode} [{version}] ({creator})${star}${htl}${ar}${bpm}',
+        fm:'{NM} / {HR}',
+        fmList:[true,false,false,false,false],
+        mod:_mod,
+    },
+    'MP5主表格':{
+        format:'${link}{bid}${artist_unicode} - {title_unicode} [{version}] ({creator})${star}${cs} / {ar} / {od}${bpm}${htl} ({max_combo}x)',
+        fm:'{NM} / {HR}',
+        fmList:[true,false,false,false,false],
+        mod:_mod,
+    },
+}
+let configData={}
+let result=''
+
+// 展示
+
+function flash(id){
+    let box=document.getElementById('flash_'+id)
+    {
+        box.style.opacity = 0.25
+        setTimeout(function(){
+            box.style.opacity = 0.5
+        },40)
+        setTimeout(function(){
+            box.style.opacity = 0.75
+        },80)
+        setTimeout(function(){
+            box.style.opacity = 1
+        },120)
+    }
+    setTimeout(function(){
+        box.style.opacity = 0.75
+        setTimeout(function(){
+            box.style.opacity = 0.5
+        },40)
+        setTimeout(function(){
+            box.style.opacity = 0.25
+        },80)
+        setTimeout(function(){
+            box.style.opacity = 0
+        },120)
+    },500)
+}
+
+
+// 读配置
+
+function changeConfig(){
+    if(configName.value)try{
+        configActive=configData[configName.value]
+        if(configActive){
+            configInput[0].value=configName.value
+            configInput[1].value=configActive.format
+            configInput[2].value=configActive.fm
+            configInput[3].checked=configActive.fmList[0]
+            configInput[4].checked=configActive.fmList[1]
+            configInput[5].checked=configActive.fmList[2]
+            configInput[6].checked=configActive.fmList[3]
+            configInput[7].checked=configActive.fmList[4]
+            config.getElementsByTagName('textarea')[0].value=configActive.mod
+        }
+    }catch{}
+    
+}
+
+function initConfig(){
+    configData={...configDataDefault}
+    try{
+        config_data=JSON.parse(localStorage.getItem('map_pool_sheet'))['config_data']
+        for(let c in config_data)if(!(c in configData))configData[c]=config_data[c]
+    }catch{}
+    configName.innerHTML='<option value="" class="hidden">自定义…</option>'
+    for(let c in configData)configName.options.add(new Option(c,c))
+
+    let config_name=null
+    try{
+        config_name=JSON.parse(localStorage.getItem('map_pool_sheet'))['config_name']
+    }catch{}
+    if(!(config_name in configData))config_name='MP5选图表'
+    configName.value=config_name
+}
+
+function custom(){
+    configName.value=''
+}
+for(let input of config.getElementsByTagName('input'))input.onchange=custom
+config.getElementsByTagName('textarea')[0].onchange=custom
+configName.onchange=changeConfig
+initConfig()
+changeConfig()
+
+// 写配置
+
+document.getElementById('save_config').onclick=function(){
+    config_data={}
+    try{
+        config_data=JSON.parse(localStorage.getItem('map_pool_sheet'))['config_data']
+    }catch{}
+    let config_name=configInput[0].value.trim()
+    if(!config_name){
+        alert('设置名不能为空。')
+        return
+    }
+    if(config_name=='MP5选图表'){
+        alert('设置名不能为“MP5选图表”。')
+        return
+    }
+    if(config_name=='MP5主表格'){
+        alert('设置名不能为“MP5主表格”。')
+        return
+    }
+    config_data[config_name]={
+        format:configInput[1].value,
+        fm:configInput[2].value,
+        fmList:[configInput[3].checked,configInput[4].checked,configInput[5].checked,configInput[6].checked,configInput[7].checked],
+        mod:config.getElementsByTagName('textarea')[0].value.trim(),
+    }
+    localStorage.setItem('map_pool_sheet',JSON.stringify({config_data,config_name}))
+    flash('config')
+    initConfig()
+}
+document.getElementById('delete_config').onclick=function(){
+    let name=configInput[0].value.trim()
+    if(!name){
+        alert('设置名不能为空。')
+        return
+    }
+    if(name=='MP5选图表'){
+        alert('不能删除“MP5选图表”。')
+        return
+    }
+    if(name=='MP5主表格'){
+        alert('不能删除“MP5主表格”。')
+        return
+    }
+    config_data={}
+    try{
+        config_data=JSON.parse(localStorage.getItem('map_pool_sheet'))['config_data']
+        config_name=JSON.parse(localStorage.getItem('map_pool_sheet'))['config_name']
+    }catch{}
+    if(!(name in config_data)){
+        alert('没有这个设置名。')
+        return
+    }
+    delete config_data[name]
+    localStorage.setItem('map_pool_sheet',JSON.stringify({config_data,config_name}))
+    flash('config')
+    initConfig()
+}
+
+// apikey
+
+if(localStorage.getItem('apikey')) apikey.value=localStorage.getItem('apikey')
+if(localStorage.getItem('remember')) remember.checked=true
+
+function saveApikey(){
+    if(remember.checked){
+        localStorage.setItem('remember',1)
+        localStorage.setItem('apikey',apikey.value.trim())
+    }else{
+        localStorage.removeItem('remember')
+        localStorage.removeItem('apikey')
+    }
+}
+remember.onchange=saveApikey
+apikey.onchange=saveApikey
+
+document.getElementById('show_config').onchange=function(){
+    if(document.getElementById('show_config').checked){
+        config.classList.remove('hidden')
+        configName.value=''
+    }else{
+        config.classList.add('hidden')
+    }
+}
+
+// 读格式
+
+function getConvert(fmNeed){
+    let row=configInput[1].value.substring(1).split(configInput[1].value[0])
+    for(let i in row){
+        let n=0
+        let m=0
+        row[i]=row[i].replaceAll('{{',function(){
+            n++
+            return '{_0}'
+        })
+        row[i]=row[i].replaceAll('}}',function(){
+            m++
+            return '{_1}'
+        })
+        for(let item of row[i].match(/{[^\{\}]+}/g)){
+            let name=item.slice(1,-1).split(/[.~]/g)
+            name[0]=name[0].trim().toLowerCase()
+            if(name[0]=='_0'){
+                n--
+                continue
+            }
+            if(name[0]=='_1'){
+                m--
+                continue
+            }
+            if(!(name[0] in fieldList)) throw `图池格式设置中“${item}”字段错误，没有这个字段。`
+            if(name.length>2){
+                throw `图池格式设置中“${item}”字段格式错误。`
+            }
+            if(name.length==2){
+                if(!(isIntegerP.test(name[1].trim()))) throw `图池格式设置中“${item}”字段格式错误。`
+                if(fieldList[name[0]]) throw `图池格式设置中“${item}”字段格式错误，该字段不支持小数功能。`
+            }
+        }
+        if(n)throw `图池格式设置中“{_0}”字段错误，没有这个字段。`
+        if(m)throw `图池格式设置中“{_1}”字段错误，没有这个字段。`
+    }
+
+    let fmFormat=configInput[2].value
+    let convertList={}
+    let convertFM=null
+    if(fmFormat){
+        let n=0
+        let m=0
+        fmFormat=fmFormat.replaceAll('{{',function(){
+            n++
+            return '{_0}'
+        })
+        fmFormat=fmFormat.replaceAll('}}',function(){
+            m++
+            return '{_1}'
+        })
+        for(let item of fmFormat.match(/{[^\{\}]+}/g)){
+            let mod=item.slice(1,-1).trim().toUpperCase()
+            if(mod=='_0'){
+                n--
+                continue
+            }
+            if(mod=='_1'){
+                m--
+                continue
+            }
+            if(!(mod in modList)) throw `FM格式设置中“${item}”MOD错误，没有这个MOD。`
+            fmNeed[mod]=1
+        }
+        if(n)throw `FM格式设置中“{_0}”MOD错误，没有这个MOD。`
+        if(m)throw `FM格式设置中“{_1}”MOD错误，没有这个MOD。`
+
+        if(configInput[3].checked)convertList['difficultyrating']=1
+        if(configInput[4].checked)convertList['diff_approach']=1
+        if(configInput[5].checked)convertList['diff_overall']=1
+        if(configInput[6].checked)convertList['diff_size']=1
+        if(configInput[7].checked)convertList['diff_drain']=1
+        convertFM=function(map,name,type,digit){
+            return fmFormat.replaceAll(/{[^\{\}]+}/g,function(item){
+                let mod=item.slice(1,-1).trim().toUpperCase()
+                if(mod=='_0')return'{'
+                if(mod=='_1')return'}'
+                let x=map[mod][name]
+                if(type)x=formatNumber(x,type,digit)
+                return x
+            })
+        }
+    }
+    
+    function convert(map){
+        if(map.Unavailable)return ''
+        let result=[]
+        for(let d of row)result.push(d.replaceAll(/{[^\{\}]+}/g,function(item){
+            let type=item.match(/[.~]/g)
+            type=type?type[0]:null
+            let name=item.slice(1,-1).split(/[.~]/g)
+            let digit=type?parseInt(name[1]):0
+            name=name[0].trim().toLowerCase()
+            if(name=='_0')return'{'
+            if(name=='_1')return'}'
+            let alt=altName[name]
+            if(alt){
+                name=alt[0]
+                if(!type){
+                    type=alt[1]
+                    digit=alt[2]
+                }
+            }
+            let x=''
+            if(map.mod=='FM'){
+                if(name in convertList)x=convertFM(map,name,type,digit)
+                else {
+                    x=map['NM'][name]
+                    if(type)x=formatNumber(x,type,digit)
+                }
+            }
+            else {
+                x=map[map.mod][name]
+                if(type)x=formatNumber(x,type,digit)
+            }
+            return x
+        }))
+        return result.join('\t')
+    }
+    
+    return convert
+}
+
+function arByMod(x,mod){
+    if(mod=='DT'){
+        if(x<=5) return 5+8*x/15
+        return (13+2*x)/3
+    }else{
+        if(x<=5) return (4*x-15)/3
+        if(x<=7) return (5*x-20)/3
+        return (4*x-13)/3
+    }
+}
+
+function convertModData(map,mod){
+    let data=map[mod]
+    switch(mod){
+        case 'EZ':
+        case 'HR':
+            for(let name of ['diff_approach','diff_overall','diff_size','diff_drain']){
+                let x=Number(data[name])
+                if(mod=='EZ')x/=2
+                else x=x>7.142?10:x*1.4
+                data[name]=x
+            }
+            break
+        case 'DT':
+        case 'HT':
+            for(let name of ['total_length','hit_length']){
+                let x=Number(data[name])
+                data[name]=mod=='DT'?x/1.5:x/0.75
+            }{
+                let x=Number(data['bpm'])
+                data['bpm']=mod=='DT'?x*1.5:x*0.75
+            }{
+                let x=Number(data['diff_approach'])
+                data['diff_approach']=arByMod(x,mod)
+            }{
+                let x=Number(data['diff_overall'])
+                data['diff_overall']=mod=='DT'? (6*x+40)/9 : (12*x-40)/9
+            }
+    }
+}
+
+// 生成
+
+function getMap(map,mod,status,retry=2){
+    let xhr = new XMLHttpRequest()
+    xhr.open('get', `https://osu.ppy.sh/api/get_beatmaps?k=${apikey.value.trim()}&b=${map.bid}&m=0&mods=${modList[mod]}`)
+    xhr.send()
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            try{
+                if(!xhr.responseText)throw 'blank'
+                if(xhr.responseText=='[]'){
+                    map.Unavailable=true
+                    status.last-=1
+                    status.noMap=map.bid
+                    return
+                }
+                let ans=JSON.parse(xhr.responseText)
+                if(ans.error){
+                    status.apikey=true
+                    return
+                }
+                if(ans[0]){
+                    map[mod]=ans[0]
+                    convertModData(map,mod)
+                    status.last-=1
+                    return
+                }
+            }catch{}
+            if(retry)setTimeout(function(){getMap(map,mod,status,retry-1)}, 2000)
+            else status.connection=true
+        }
+    }
+}
+
+function checkGenerate(Maps,convert,status){
+    if(status.connection){
+        alert('未能连接osu，请确保您提供的apikey有效，并检查网络连接后重试。')
+        document.getElementById('generate').removeAttribute('disabled')
+        return
+    }
+    if(status.apikey){
+        alert('您提供的apikey无效，请检查后重试。')
+        document.getElementById('generate').removeAttribute('disabled')
+        return
+    }
+    if(status.noMap){
+        alert(`没有在osu中查找到您提供的bid“${status.noMap}”所对应的图，相应行将留空，但查询仍将继续。`)
+    }
+    if(status.last){
+        setTimeout(function(){checkGenerate(Maps,convert,status)},500)
+        return
+    }
+
+    let ans=[]
+    for(let map of Maps)ans.push(convert(map))
+
+    result=ans.join('\n')
+    content.textContent=result
+    document.getElementById('generate').removeAttribute('disabled')
+    flash('generate')
+}
+
+document.getElementById('generate').onclick=function(){
+    if(!apikey.value.trim()){
+        alert('请填写apikey。')
+        return
+    }
+
+    let fmNeed={NM:1}
+    let convert=null
+    try{
+        convert=getConvert(fmNeed)
+    }catch(e){
+        alert(e)
+        return
+    }
+
+    let Maps=[]
+    for(let bid of pool.value.trim().split('\n')){
+        bid=bid.trim()
+        if(!bid)continue
+        if(!isInteger.test(bid)){
+            alert(`无法识别图池中的“${bid}”`)
+            return
+        }
+        Maps.push({bid})
+    }
+
+    let modByI=null
+    if(document.getElementById('mod').value){
+        const mod=document.getElementById('mod').value
+        modByI=function(i){return mod}
+    }else{
+        let modIdentify={}
+        for(let line of config.getElementsByTagName('textarea')[0].value.trim().split('\n')){
+            let s=0
+            let d=[]
+            for(let modn of line.split(' ')){
+                modn=modn.trim()
+                if(!modn)continue
+                let mod=modn.substring(0,2).toUpperCase() 
+                let n=modn.substring(2)
+                if(!n){
+                    n=1
+                }
+                if(!(mod in modList) || !isIntegerP.test(n)){
+                    alert(`MOD识别设置中“${modn}”格式错误。`)
+                    return
+                }
+                n=parseInt(n)
+                if(!n){
+                    alert(`MOD识别设置中“${modn}”格式错误。`)
+                    return
+                }
+                s+=n
+                for(;n>0;n--)d.push(mod)
+            }
+            if(s in modIdentify){
+                    alert(`MOD识别设置中存在总图数相等的两行。`)
+                    return
+            }else modIdentify[s]=d
+        }
+
+        if(Maps.length in modIdentify){
+            modIdentify=modIdentify[Maps.length]
+            modByI=function(i){return modIdentify[i]}
+        }
+        else modByI=function(i){return 'NM'}
+    }
+
+    document.getElementById('generate').setAttribute('disabled','')
+
+    let status={last:0}
+    for(let i in Maps){
+        Maps[i].mod=modByI(i)
+        if(Maps[i].mod=='FM')for(let mod in fmNeed)
+            setTimeout(function(){getMap(Maps[i],mod,status)},(status.last++)*100)
+        else
+            setTimeout(function(){getMap(Maps[i],Maps[i].mod,status)},(status.last++)*100)
+    }
+    checkGenerate(Maps,convert,status)
+}
+
+const copyTextarea = document.createElement('textarea')
+document.getElementById('copy').onclick=function(){
+    document.body.appendChild(copyTextarea)
+    copyTextarea.innerHTML = result
+    copyTextarea.select()
+    document.execCommand('Copy')
+    document.body.removeChild(copyTextarea)
+    flash('copy')
+}
+</script>
+</body>
+</html>
