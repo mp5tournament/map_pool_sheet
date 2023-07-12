@@ -660,15 +660,20 @@ function getConvert(fmNeed){
                     }
                 }
                 let x=''
+                let mod=map.mod
                 if(map.mod=='FM'){
-                    if(name in convertList)x=convertFM(map,name,type,digit)
-                    else {
-                        x=map['NM'][name]
-                        if(type)x=formatNumber(x,type,digit)
+                    if(name in convertList){
+                        x=convertFM(map,name,type,digit)
+                        mod=null
                     }
+                    else mod='NM'
                 }
-                else {
-                    x=map[map.mod][name]
+                if(mod) {
+                    x=map[mod][name]
+                    if(!x){
+                        if(name=='artist_unicode')x=map[mod]['artist']
+                        if(name=='title_unicode')x=map[mod]['title']
+                    }
                     if(type)x=formatNumber(x,type,digit)
                 }
                 return x
