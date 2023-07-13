@@ -178,7 +178,7 @@ textarea::placeholder,input::placeholder{
             </tr></table>
             <hr><table style="width: 100%;"><tr>
                 <td class="ltitle">图池格式：</td>
-                <td><input placeholder="${link}{bid}${artist_unicode} - {title_unicode} [{version}] ({creator})${star}${cs} / {ar} / {od}${bpm}${htl} ({max_combo}x)" style="width: 100%;"></td>
+                <td><input placeholder="${link}{bid}${artist_unicode} - {title_unicode} [{version}] ({creator})${star}${cs} / {ar} / {od}${bpm}${ttl} ({max_combo}x)" style="width: 100%;"></td>
             </tr><tr><td class="comment" colspan="2">
                 每张图所对应一行中的格式，首个字符会被当做不同单元格之间的分隔符，之后的同样字符将会被转化为制表符，以达到能够直接向表格复制的效果。<br>
                 <i>{字段名}</i>会被替换成相应数据，比如<i>{star}</i>会被替换成图的星数。如果你希望真正显示<i>{</i>和<i>}</i>这两个字符，请用<i>{{</i>和<i>}}</i>代替。<br>
@@ -369,13 +369,13 @@ const content=document.getElementById('content')
 
 let configDataDefault={
     'MP5选图表':{
-        format:'${artist_unicode} - {title_unicode} [{version}] ({creator})${star}${htl}${ar}${bpm.0}',
+        format:'${artist_unicode} - {title_unicode} [{version}] ({creator})${star}${ttl}${ar}${bpm.0}',
         fm:'{NM} / {HR}',
         fmList:[true,false,false,false,false],
         mod:_mod,
     },
     'MP5主表格':{
-        format:'${link}{bid}${artist_unicode} - {title_unicode} [{version}] ({creator})${star}${cs} / {ar} / {od}${bpm.0}${htl} ({max_combo}x)',
+        format:'${link}{bid}${artist_unicode} - {title_unicode} [{version}] ({creator})${star}${cs} / {ar} / {od}${bpm.0}${ttl} ({max_combo}x)',
         fm:'{NM} / {HR}',
         fmList:[true,false,false,false,false],
         mod:_mod,
