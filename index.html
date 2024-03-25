@@ -368,6 +368,12 @@ const content=document.getElementById('content')
 
 let configDataDefault={
     'MP5选图表':{
+        format:'${artist_unicode} - {title_unicode} [{version}] ({creator})${star}${ttl}${ar}${bpm.0}${link}{bid}',
+        fm:'{NM} / {HR}',
+        fmList:[true,false,false,false,false],
+        mod:_mod,
+    },
+    'MP5选图表(无bid)':{
         format:'${artist_unicode} - {title_unicode} [{version}] ({creator})${star}${ttl}${ar}${bpm.0}',
         fm:'{NM} / {HR}',
         fmList:[true,false,false,false,false],
