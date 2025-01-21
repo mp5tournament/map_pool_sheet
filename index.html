@@ -893,6 +893,19 @@ document.getElementById('copy').onclick=function(){
     document.body.removeChild(copyTextarea)
     flash('copy')
 }
+
+if(window.location.search){
+    const modSelect=document.getElementById('mod')
+    for(arg of window.location.search.substring(1).split('&')){
+        if(arg.split('=')[0]=='mod'){
+            let mod=arg.split('=')[1].toUpperCase()
+            if(mod=='HD'||mod=='TB'){
+                mod='NM'
+            }
+            modSelect.value=mod
+        }
+    }
+}
 </script>
 </body>
 </html>
