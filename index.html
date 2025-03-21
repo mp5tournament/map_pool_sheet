@@ -572,25 +572,27 @@ function getConvert(fmNeed){
             m++
             return '{_1}'
         })
-        for(let item of row[i].match(/{[^\{\}]+}/g)){
-            let name=item.slice(1,-1).split(/[.~]/g)
-            name[0]=name[0].trim().toLowerCase()
-            if(name[0]=='_0'){
-                n--
-                continue
-            }
-            if(name[0]=='_1'){
-                m--
-                continue
-            }
-            if(name[0]=='link')continue
-            if(!(name[0] in fieldList)) throw `图池格式设置中“${item}”字段错误，没有这个字段。`
-            if(name.length>2){
-                throw `图池格式设置中“${item}”字段格式错误。`
-            }
-            if(name.length==2){
-                if(!(isIntegerP.test(name[1].trim()))) throw `图池格式设置中“${item}”字段格式错误。`
-                if(fieldList[name[0]]) throw `图池格式设置中“${item}”字段格式错误，该字段不支持小数功能。`
+        if(row[i].match(/{[^\{\}]+}/g){
+            for(let item of row[i].match(/{[^\{\}]+}/g)){
+                let name=item.slice(1,-1).split(/[.~]/g)
+                name[0]=name[0].trim().toLowerCase()
+                if(name[0]=='_0'){
+                    n--
+                    continue
+                }
+                if(name[0]=='_1'){
+                    m--
+                    continue
+                }
+                if(name[0]=='link')continue
+                if(!(name[0] in fieldList)) throw `图池格式设置中“${item}”字段错误，没有这个字段。`
+                if(name.length>2){
+                    throw `图池格式设置中“${item}”字段格式错误。`
+                }
+                if(name.length==2){
+                    if(!(isIntegerP.test(name[1].trim()))) throw `图池格式设置中“${item}”字段格式错误。`
+                    if(fieldList[name[0]]) throw `图池格式设置中“${item}”字段格式错误，该字段不支持小数功能。`
+                }
             }
         }
         if(n)throw `图池格式设置中“{_0}”字段错误，没有这个字段。`
@@ -611,18 +613,20 @@ function getConvert(fmNeed){
             m++
             return '{_1}'
         })
-        for(let item of fmFormat.match(/{[^\{\}]+}/g)){
-            let mod=item.slice(1,-1).trim().toUpperCase()
-            if(mod=='_0'){
-                n--
-                continue
+        if(fmFormat.match(/{[^\{\}]+}/g){
+            for(let item of fmFormat.match(/{[^\{\}]+}/g)){
+                let mod=item.slice(1,-1).trim().toUpperCase()
+                if(mod=='_0'){
+                    n--
+                    continue
+                }
+                if(mod=='_1'){
+                    m--
+                    continue
+                }
+                if(!(mod in modList)) throw `FM格式设置中“${item}”MOD错误，没有这个MOD。`
+                fmNeed[mod]=1
             }
-            if(mod=='_1'){
-                m--
-                continue
-            }
-            if(!(mod in modList)) throw `FM格式设置中“${item}”MOD错误，没有这个MOD。`
-            fmNeed[mod]=1
         }
         if(n)throw `FM格式设置中“{_0}”MOD错误，没有这个MOD。`
         if(m)throw `FM格式设置中“{_1}”MOD错误，没有这个MOD。`
